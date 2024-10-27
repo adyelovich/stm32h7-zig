@@ -1,0 +1,15 @@
+const sys = @import("sys");
+
+export fn main() void {
+
+    _ = sys.get_CONTROL_REG();
+
+    // enable the clock
+    sys.RCC.gpio_clk_rst(1 << 4);
+    
+    // config the LED
+    sys.GPIOE.config_pin(1, sys.gpio.Mode.general_output, null, null, null, null);
+    
+    // toggle it
+    sys.GPIOE.toggle(1);
+}

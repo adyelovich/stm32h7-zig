@@ -1,0 +1,117 @@
+pub const Base = packed struct {
+    MODER: u32,
+    OTYPER: u32,
+    OPSEEDR: u32,
+    PUPDR: u32,
+    IDR: u32,
+    ODR: u32,
+    BSRR: u32,
+    LCKR: u32,
+    AFRL: u32,
+    AFRH: u32,
+
+    pub fn config_pin(self: *volatile Base, pin: u16, mode: Mode, output: ?Output, speed: ?Speed, pupd: ?Pupd, alt_func: ?u8) void {
+        _ = mode;
+        _ = speed;
+        _ = pupd;
+        _ = alt_func;
+
+        self.config_output(pin, output);
+    }
+
+    pub fn config_mode(self: *volatile Base, pin: u16, mode: Mode, alt_func: ?u8) void {
+        const mode_extend = bitfill(u32, 2, @intFromEnum(mode));
+        const mask = bitmul(pin, 16, 2);
+        const old_state = self.MODER & ~mask;
+        const new_state = mode_extend & mask;
+        self.MODER = old_state | new_state;
+
+        if (alt_func) |af| {
+            const af_extend = bitfill(u32, 4, @intFromEnum(af));
+            const mask = bitmul(pin & 0xFF, 8, 4);
+            const old_state = self.AFLR
+        }
+    }
+    
+    pub fn config_mode(self: *volatile Base, pin: u16, mode: Mode, alt_func: ?u8) void {
+        // set MODER register first
+        const m = @intFromEnum(mode);
+        const prev_state = ~pin & self.MODER;
+        const new_state = pin & bitfill(u32, @TypeOf(m), m);
+        self.MODER = prev_state | new_state;
+
+        // now set the alt_func register if it's not null
+        if (alt_func) |af| {
+            const prev_state = ;
+        }
+    }
+
+    pub fn config_output(self: *volatile Base, pin: u16, output: ?Output) void {
+        if (output) |out_capture| {
+            const out = @intFromEnum(out_capture);
+            const prev_state = ~pin & self.OTYPER;
+            const new_state = pin & bitfill(u16, @TypeOf(out), out);
+            self.OTYPER = prev_state | new_state;
+        }
+    }
+
+    pub fn config_speed(self: *volatile Base, pin: u16, speed: ?Speed) void {
+        if (speed) |s_capture| {
+            const s = @intFromEnum(s_capture);
+            const mask = doublemask(pin);
+            const prev_state = ~mask & self.OSPEEDR;
+            const new_state = mask & bitfill(u32, @TypeOf(s), s);
+            self.OSPEEDR = prev_state | new_state;
+        }
+    }
+
+    pub fn config_pupd(self: *volatile Base, pin: u16, pupd: ?Pupd) void {
+        if (pupd) |p_capture| {
+            const p = @intFromEnum(p_capture);
+            const prev_state = ~pin & self.PUPDR;
+            const new_state = pin & bitfill(u32, @TypeOf(out), out);
+            self.PUPDR = prev_state | new_state;
+        }
+    }
+};
+
+pub const Mode = enum(u2) {
+    input = 0,
+    general_output,
+    alt_func,
+    analog,
+};
+
+pub const Output = enum(u1) {
+    push_pull = 0,
+    open_drain,
+};
+
+pub const Speed = enum(u2) {
+    low = 0,
+    medium,
+    high,
+    very_high,
+};
+
+pub const Pupd = enum(u2) {
+    none = 0,
+    up,
+    down,
+};
+
+fn doublemask(oldmask: u16) u32 {
+    var mask: u32 = 0;
+    var p = oldmask;
+    var i: usize = 16;
+    while (i > 0) : ({
+        i -= 1;
+        p <<= 1;
+    }) {
+        const bit = (p & 0x8000) >> 15;
+        mask <<= 2;
+        mask |= (bit << 1) | bit;
+    }
+
+    return mask;
+}
