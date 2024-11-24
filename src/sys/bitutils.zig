@@ -19,11 +19,15 @@ pub fn bitfill(comptime T: type, len: u6, elt: u32) T {
 // copies of the second LSB of input, and so on
 //
 // For example: input = abcd, len = 3, mul = 3 returns bbbcccddd
-pub fn bitmul(input: u16, len: u6, mul: u6) u32 {
+pub fn bitmul(input: u32, len: u6, mul: u6) u32 {
     var ret: u32 = 0;
     var sparse: u32 = 0;
     var i: u6 = 0;
 
+    if (input & 0xFFFF != 0) {
+        return input;
+    }
+    
     const fixlen = if (len > 32) 32 else len;
     const fixmul = if (mul > 32) 32 else mul;
     
@@ -52,7 +56,7 @@ pub fn bitmul(input: u16, len: u6, mul: u6) u32 {
 // Then extract the bits we wish to write by ANDing the mask with the extended
 // config, OR them together, and write (so that the effect is that things
 // we did not want to change match up with what we write)
-pub fn rwconfig(comptime T: type, reg: *volatile T, pin: u16,
+pub fn rwconfig(comptime T: type, reg: *volatile T, pin: u32,
                 config: u32, config_len: u6) T {
     const config_extend = bitfill(T, config_len, config);
     const mask = bitmul(pin,

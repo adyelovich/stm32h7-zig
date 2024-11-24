@@ -1,6 +1,6 @@
 const sys = @import("sys");
 
-export fn main() void {
+export fn main() i32 {
 
     _ = sys.get_CONTROL_REG();
 
@@ -14,4 +14,10 @@ export fn main() void {
     // toggle it
     sys.GPIOB.toggle(0x4001);
     sys.GPIOE.toggle(2);
+
+    const got = sys.RCC.config_pll(1, sys.rcc.PllDiv{.M = 1, .N=1,.P=1,.Q=1,.R=1}, false)
+        catch |err| return @intFromError(err);
+    
+    _ = got;
+    return 0;
 }

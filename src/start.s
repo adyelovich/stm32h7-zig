@@ -1,6 +1,6 @@
     .global reset_handler
     .global get_CONTROL_REG
-    
+
     .section .vtable,"a",%progbits
     .type nvic_vectors, %object
 nvic_vectors:
@@ -15,7 +15,7 @@ nvic_vectors:
     .word 0
     .endr
 
-    .balign 1024              /* just in case, NVIC might need some alignment */
+    .balign 1024                ;@ just in case NVIC needs alignment
 
     .section .text
     
